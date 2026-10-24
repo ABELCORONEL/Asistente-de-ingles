@@ -10,6 +10,14 @@ Sistema interactivo con machine learning y detección de voz para la mejora del 
 | `develop` | Integración del desarrollo |
 | `feature/*` | Una funcionalidad por rama, creada desde `develop` |
 
+## Interfaz
+
+| Archivo | Contenido |
+|---------|-----------|
+| `frontend/practica-pronunciacion.html` | Pantalla de práctica de pronunciación (HTML, CSS y JavaScript) |
+
+Abrir el archivo en Google Chrome o Microsoft Edge y permitir el uso del micrófono.
+
 ## Base de datos (PostgreSQL)
 
 | Archivo | Contenido |
