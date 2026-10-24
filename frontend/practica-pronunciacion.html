@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica de pronunciación | Asistente de inglés</title>
+<style>
+:root {
+  --fondo: #F4F7FB;
+  --superficie: #FFFFFF;
+  --texto: #1B2430;
+  --texto-suave: #5B6878;
+  --borde: #E1E7EF;
+  --primario: #1565C0;
+  --primario-suave: #E3F0FD;
+  --exito: #2E7D32;
+  --exito-suave: #E8F5E9;
+  --alerta: #E65100;
+  --alerta-suave: #FFF3E0;
+  --error: #C62828;
+  --error-suave: #FDECEA;
+  --radio: 14px;
+  --sombra: 0 1px 2px rgba(16, 24, 40, .06), 0 4px 16px rgba(16, 24, 40, .06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+}
+button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 3px solid #90CAF9; outline-offset: 2px; }
+
+.lateral {
+  background: #0F2A4A;
+  color: #DCE6F2;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.marca { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
+.marca-logo {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, #42A5F5, #1565C0);
+  display: grid; place-items: center; font-weight: 700; color: #fff;
+}
+.marca-texto { line-height: 1.15; }
+.marca-texto strong { display: block; color: #fff; font-size: 15px; }
+.marca-texto span { font-size: 12px; color: #9FB3C8; }
+.menu { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.menu a {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 10px;
+  color: #C5D3E3; text-decoration: none; font-size: 14.5px;
+  transition: background .15s ease, color .15s ease;
+}
+.menu a:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+.menu a.activo { background: #1565C0; color: #fff; font-weight: 600; }
+.menu svg { width: 18px; height: 18px; flex-shrink: 0; }
+.lateral-pie { margin-top: auto; font-size: 12px; color: #8CA2BA; padding: 0 8px; }
+
+.principal { padding: 28px 32px 40px; display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.cabecera { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.cabecera h1 { font-size: 24px; font-weight: 700; }
+.cabecera p { color: var(--texto-suave); font-size: 14px; margin-top: 4px; }
+.perfil { display: flex; align-items: center; gap: 12px; background: var(--superficie); padding: 8px 14px 8px 8px; border-radius: 999px; box-shadow: var(--sombra); }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: #FFE0B2; color: #E65100; display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+.perfil strong { display: block; font-size: 14px; }
+.perfil span { font-size: 12px; color: var(--texto-suave); }
+
+.contenido { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+.tarjeta { background: var(--superficie); border-radius: var(--radio); box-shadow: var(--sombra); border: 1px solid var(--borde); }
+
+.practica { padding: 28px; display: flex; flex-direction: column; gap: 24px; }
+.practica-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.etiqueta { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: var(--primario-suave); color: var(--primario); }
+.contador { font-size: 13px; color: var(--texto-suave); }
+.barra { height: 6px; background: var(--borde); border-radius: 999px; overflow: hidden; }
+.barra-relleno { height: 100%; width: 0; background: linear-gradient(90deg, #42A5F5, #1565C0); border-radius: 999px; transition: width .4s ease; }
+
+.palabra-bloque { text-align: center; padding: 12px 0 4px; }
+.palabra { font-size: clamp(40px, 7vw, 60px); font-weight: 800; letter-spacing: -.02em; color: #0F2A4A; }
+.fonetica { font-size: 20px; color: var(--primario); margin-top: 6px; font-family: "Segoe UI", "Lucida Sans Unicode", "DejaVu Sans", sans-serif; }
+.traduccion { margin-top: 10px; font-size: 15px; color: var(--texto-suave); }
+.ejemplo { margin: 18px auto 0; max-width: 460px; font-size: 15px; font-style: italic; color: var(--texto); background: var(--fondo); padding: 12px 16px; border-radius: 10px; border-left: 4px solid #90CAF9; }
+
+.acciones { display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; }
+.boton {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 15px;
+  transition: transform .12s ease, background .15s ease, box-shadow .15s ease;
+}
+.boton:active { transform: scale(.97); }
+.boton svg { width: 20px; height: 20px; }
+.boton-secundario { background: var(--primario-suave); color: var(--primario); }
+.boton-secundario:hover { background: #CFE4FB; }
+.boton-borde { border: 1.5px solid var(--borde); color: var(--texto); background: var(--superficie); }
+.boton-borde:hover { border-color: #B8C4D3; }
+.boton-borde:disabled { opacity: .45; cursor: not-allowed; }
+
+.microfono {
+  width: 88px; height: 88px; border-radius: 50%;
+  background: var(--primario); color: #fff;
+  display: grid; place-items: center;
+  box-shadow: 0 8px 24px rgba(21, 101, 192, .35);
+  position: relative;
+  transition: background .2s ease, transform .12s ease;
+}
+.microfono svg { width: 36px; height: 36px; }
+.microfono:hover { background: #0D47A1; }
+.microfono:active { transform: scale(.95); }
+.microfono.grabando { background: var(--error); box-shadow: 0 8px 24px rgba(198, 40, 40, .35); }
+.microfono.grabando::before, .microfono.grabando::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  border: 3px solid var(--error); animation: onda 1.4s ease-out infinite;
+}
+.microfono.grabando::after { animation-delay: .7s; }
+@keyframes onda { from { transform: scale(1); opacity: .7; } to { transform: scale(1.6); opacity: 0; } }
+.microfono-texto { text-align: center; font-size: 13.5px; color: var(--texto-suave); min-height: 20px; }
+
+.manual { display: none; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.manual.visible { display: flex; }
+.manual input { padding: 11px 14px; border: 1.5px solid var(--borde); border-radius: 10px; font-size: 15px; min-width: 220px; }
+
+.resultado { display: none; gap: 22px; align-items: center; padding: 20px; border-radius: 12px; border: 1.5px solid var(--borde); }
+.resultado.visible { display: flex; animation: aparecer .35s ease; }
+.resultado.bien { background: var(--exito-suave); border-color: #A5D6A7; }
+.resultado.regular { background: var(--alerta-suave); border-color: #FFCC80; }
+.resultado.mal { background: var(--error-suave); border-color: #EF9A9A; }
+@keyframes aparecer { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.anillo {
+  --valor: 0; --color: var(--exito);
+  width: 96px; height: 96px; border-radius: 50%; flex-shrink: 0;
+  background: conic-gradient(var(--color) calc(var(--valor) * 1%), rgba(0, 0, 0, .08) 0);
+  display: grid; place-items: center;
+}
+.anillo span { width: 74px; height: 74px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 22px; font-weight: 800; }
+.resultado h3 { font-size: 17px; margin-bottom: 6px; }
+.resultado p { font-size: 14px; color: var(--texto); line-height: 1.5; }
+.comparacion { margin-top: 8px; font-size: 14px; }
+.comparacion b { font-weight: 700; }
+.letra-ok { color: var(--exito); }
+.letra-mal { color: var(--error); text-decoration: underline wavy; text-underline-offset: 4px; }
+
+.navegacion { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+.panel { padding: 22px; display: flex; flex-direction: column; gap: 20px; }
+.panel h2 { font-size: 16px; }
+.metricas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.metrica { background: var(--fondo); border-radius: 10px; padding: 12px 8px; text-align: center; }
+.metrica strong { display: block; font-size: 22px; font-weight: 800; color: #0F2A4A; }
+.metrica span { font-size: 11.5px; color: var(--texto-suave); }
+.historial { list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 330px; overflow-y: auto; }
+.historial li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--fondo); font-size: 14px; }
+.historial small { display: block; color: var(--texto-suave); font-size: 12px; }
+.puntaje { font-weight: 700; font-size: 13px; padding: 3px 9px; border-radius: 999px; }
+.puntaje.bien { background: var(--exito-suave); color: var(--exito); }
+.puntaje.regular { background: var(--alerta-suave); color: var(--alerta); }
+.puntaje.mal { background: var(--error-suave); color: var(--error); }
+.vacio { color: var(--texto-suave); font-size: 13.5px; text-align: center; padding: 16px 0; }
+.consejo { font-size: 13.5px; line-height: 1.5; background: var(--primario-suave); color: #0D3C78; padding: 12px 14px; border-radius: 10px; }
+
+.aviso {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(120%);
+  background: #0F2A4A; color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 14px;
+  box-shadow: var(--sombra); transition: transform .3s ease, opacity .3s ease, visibility .3s; z-index: 10; max-width: calc(100% - 32px);
+  opacity: 0; visibility: hidden;
+}
+.aviso.visible { transform: translateX(-50%) translateY(0); opacity: 1; visibility: visible; }
+
+@media (max-width: 1080px) {
+  .contenido { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  body { grid-template-columns: 1fr; }
+  .lateral { flex-direction: row; align-items: center; padding: 12px 16px; gap: 12px; overflow-x: auto; }
+  .marca-texto, .lateral-pie { display: none; }
+  .menu { flex-direction: row; }
+  .menu a { padding: 8px 10px; white-space: nowrap; font-size: 13.5px; }
+  .principal { padding: 20px 16px 32px; }
+  .practica { padding: 20px; }
+  .resultado.visible { flex-direction: column; text-align: center; }
+  .acciones { gap: 10px; flex-wrap: nowrap; }
+  .acciones .boton { padding: 10px 12px; font-size: 14px; }
+  .microfono { width: 72px; height: 72px; flex-shrink: 0; }
+  .microfono svg { width: 30px; height: 30px; }
+  .navegacion { flex-wrap: nowrap; }
+  .navegacion .boton { flex: 1; padding: 11px 10px; font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<aside class="lateral">
+  <div class="marca">
+    <div class="marca-logo">AI</div>
+    <div class="marca-texto">
+      <strong>Asistente de inglés</strong>
+      <span>UNIFRANZ · Primer semestre</span>
+    </div>
+  </div>
+  <ul class="menu">
+    <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</a></li>
+    <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>Vocabulario</a></li>
+    <li><a href="#" class="activo" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>Pronunciación</a></li>
+    <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Mi progreso</a></li>
+  </ul>
+  <div class="lateral-pie">Sistema interactivo con ML y detección de voz</div>
+</aside>
+
+<main class="principal">
+  <header class="cabecera">
+    <div>
+      <h1>Práctica de pronunciación</h1>
+      <p>Escucha la palabra, pulsa el micrófono y pronúnciala en voz alta.</p>
+    </div>
+    <div class="perfil">
+      <div class="avatar">AF</div>
+      <div>
+        <strong>Ana Flores</strong>
+        <span>Nivel A1 · Inglés I - Grupo A</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="contenido">
+    <section class="tarjeta practica" aria-labelledby="palabra">
+      <div class="practica-top">
+        <span class="etiqueta" id="categoria">Saludos y presentaciones</span>
+        <span class="contador" id="contador">Palabra 1 de 8</span>
+      </div>
+      <div class="barra" aria-hidden="true"><div class="barra-relleno" id="barra"></div></div>
+
+      <div class="palabra-bloque">
+        <div class="palabra" id="palabra">greeting</div>
+        <div class="fonetica" id="fonetica">/ˈɡriːtɪŋ/</div>
+        <div class="traduccion">Significado: <strong id="traduccion">saludo</strong></div>
+        <p class="ejemplo" id="ejemplo">A friendly greeting starts the class.</p>
+      </div>
+
+      <div class="acciones">
+        <button class="boton boton-secundario" id="btnEscuchar" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
+          Escuchar
+        </button>
+        <button class="microfono" id="btnGrabar" type="button" aria-label="Grabar pronunciación">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></svg>
+        </button>
+        <button class="boton boton-secundario" id="btnLento" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          Lento
+        </button>
+      </div>
+      <div class="microfono-texto" id="estado" aria-live="polite">Pulsa el micrófono para empezar</div>
+
+      <form class="manual" id="manual">
+        <input id="entradaManual" type="text" placeholder="Escribe lo que pronunciaste" autocomplete="off" aria-label="Texto pronunciado">
+        <button class="boton boton-secundario" type="submit">Evaluar</button>
+      </form>
+
+      <div class="resultado" id="resultado" aria-live="polite">
+        <div class="anillo" id="anillo"><span id="puntajeTexto">0</span></div>
+        <div>
+          <h3 id="resultadoTitulo">¡Muy bien!</h3>
+          <p id="resultadoMensaje"></p>
+          <div class="comparacion">Se reconoció: <b id="reconocido"></b></div>
+          <div class="comparacion">Palabra objetivo: <b id="objetivo"></b></div>
+        </div>
+      </div>
+
+      <div class="navegacion">
+        <button class="boton boton-borde" id="btnAnterior" type="button">← Anterior</button>
+        <button class="boton boton-borde" id="btnSiguiente" type="button">Siguiente palabra →</button>
+      </div>
+    </section>
+
+    <aside class="tarjeta panel">
+      <h2>Sesión actual</h2>
+      <div class="metricas">
+        <div class="metrica"><strong id="mIntentos">0</strong><span>Intentos</span></div>
+        <div class="metrica"><strong id="mAciertos">0</strong><span>Aciertos</span></div>
+        <div class="metrica"><strong id="mPromedio">–</strong><span>Promedio</span></div>
+      </div>
+      <h2>Últimos intentos</h2>
+      <ul class="historial" id="historial">
+        <li class="vacio">Aún no hay intentos en esta sesión.</li>
+      </ul>
+      <p class="consejo" id="consejo">Consejo: escucha la palabra una o dos veces antes de grabar y habla a un ritmo natural.</p>
+    </aside>
+  </div>
+</main>
+
+<div class="aviso" id="aviso" role="status"></div>
+
+<script>
+const palabras = [
+  { termino: "greeting", fonetica: "/ˈɡriːtɪŋ/", traduccion: "saludo", ejemplo: "A friendly greeting starts the class.", categoria: "Saludos y presentaciones" },
+  { termino: "through", fonetica: "/θruː/", traduccion: "a través de", ejemplo: "We walk through the campus.", categoria: "Saludos y presentaciones", consejo: "El sonido /θ/ se produce con la lengua entre los dientes, como la «z» del español de España." },
+  { termino: "schedule", fonetica: "/ˈskedʒuːl/", traduccion: "horario", ejemplo: "Check your class schedule.", categoria: "Vida universitaria", consejo: "Empieza con «sk» y no agregues una «e» al inicio: no es «eschedule»." },
+  { termino: "vegetable", fonetica: "/ˈvedʒtəbəl/", traduccion: "verdura", ejemplo: "The cafeteria serves vegetable soup.", categoria: "Vida universitaria", consejo: "Se pronuncian tres sílabas: VEDJ-tə-bəl. La segunda «e» casi no suena." },
+  { termino: "thought", fonetica: "/θɔːt/", traduccion: "pensamiento", ejemplo: "I thought the exam was easy.", categoria: "Vida universitaria", consejo: "La «gh» no se pronuncia. Cuida el sonido /θ/ inicial." },
+  { termino: "keyboard", fonetica: "/ˈkiːbɔːrd/", traduccion: "teclado", ejemplo: "Type your name on the keyboard.", categoria: "Tecnología" },
+  { termino: "software", fonetica: "/ˈsɔːftwer/", traduccion: "programa", ejemplo: "This software helps you practice.", categoria: "Tecnología" },
+  { termino: "algorithm", fonetica: "/ˈælɡərɪðəm/", traduccion: "algoritmo", ejemplo: "The algorithm recommends new words.", categoria: "Tecnología", consejo: "El acento va en la primera sílaba: AL-go-rithm." }
+];
+
+const UMBRAL_CORRECTO = 80;
+const UMBRAL_REGULAR = 50;
+const consejoGeneral = "Consejo: escucha la palabra una o dos veces antes de grabar y habla a un ritmo natural.";
+
+const $ = id => document.getElementById(id);
+const estado = { indice: 0, intentos: [], grabando: false };
+
+const Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
+let reconocedor = null;
+
+function normalizar(texto) {
+  return texto.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z\s']/g, "").trim();
+}
+
+function distancia(a, b) {
+  const m = a.length, n = b.length;
+  const d = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
+  for (let j = 1; j <= n; j++) d[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const costo = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + costo);
+    }
+  }
+  return d[m][n];
+}
+
+function similitud(reconocido, objetivo) {
+  const a = normalizar(reconocido), b = normalizar(objetivo);
+  if (!a) return 0;
+  const candidatas = [a, ...a.split(/\s+/)];
+  const mejor = Math.max(...candidatas.map(c => 1 - distancia(c, b) / Math.max(c.length, b.length)));
+  return Math.round(Math.max(0, mejor) * 100);
+}
+
+function categoriaPuntaje(p) {
+  if (p >= UMBRAL_CORRECTO) return "bien";
+  if (p >= UMBRAL_REGULAR) return "regular";
+  return "mal";
+}
+
+function marcarLetras(reconocido, objetivo) {
+  const r = normalizar(reconocido);
+  return [...objetivo].map((letra, i) => {
+    const ok = r[i] === letra;
+    return `<span class="${ok ? "letra-ok" : "letra-mal"}">${letra}</span>`;
+  }).join("");
+}
+
+function mostrarPalabra() {
+  const p = palabras[estado.indice];
+  $("palabra").textContent = p.termino;
+  $("fonetica").textContent = p.fonetica;
+  $("traduccion").textContent = p.traduccion;
+  $("ejemplo").textContent = p.ejemplo;
+  $("categoria").textContent = p.categoria;
+  $("contador").textContent = `Palabra ${estado.indice + 1} de ${palabras.length}`;
+  $("barra").style.width = `${((estado.indice + 1) / palabras.length) * 100}%`;
+  $("consejo").textContent = p.consejo ? `Consejo: ${p.consejo}` : consejoGeneral;
+  $("btnAnterior").disabled = estado.indice === 0;
+  $("btnSiguiente").textContent = estado.indice === palabras.length - 1 ? "Volver al inicio ↺" : "Siguiente palabra →";
+  $("resultado").className = "resultado";
+  $("entradaManual").value = "";
+  $("estado").textContent = Reconocimiento ? "Pulsa el micrófono para empezar" : "Tu navegador no permite reconocimiento de voz: escribe lo que pronunciaste.";
+}
+
+function hablar(velocidad) {
+  if (!("speechSynthesis" in window)) {
+    avisar("Tu navegador no permite reproducir audio de referencia.");
+    return;
+  }
+  speechSynthesis.cancel();
+  const voz = new SpeechSynthesisUtterance(palabras[estado.indice].termino);
+  voz.lang = "en-US";
+  voz.rate = velocidad;
+  const ingles = speechSynthesis.getVoices().find(v => v.lang && v.lang.startsWith("en"));
+  if (ingles) voz.voice = ingles;
+  speechSynthesis.speak(voz);
+}
+
+function evaluar(alternativas) {
+  const objetivo = palabras[estado.indice].termino;
+  const lista = alternativas.filter(Boolean);
+  let mejorTexto = lista[0] || "";
+  let mejorPuntaje = 0;
+  lista.forEach(t => {
+    const s = similitud(t, objetivo);
+    if (s > mejorPuntaje) { mejorPuntaje = s; mejorTexto = t; }
+  });
+  registrarIntento(mejorTexto, mejorPuntaje);
+}
+
+function registrarIntento(texto, puntaje) {
+  const p = palabras[estado.indice];
+  const tipo = categoriaPuntaje(puntaje);
+  estado.intentos.unshift({ termino: p.termino, texto, puntaje, tipo, hora: new Date() });
+
+  const titulos = { bien: "¡Muy bien!", regular: "Casi lo logras", mal: "Intentémoslo de nuevo" };
+  const mensajes = {
+    bien: "Tu pronunciación fue reconocida correctamente. Puedes pasar a la siguiente palabra.",
+    regular: "Se entendió una palabra parecida. Escucha el audio de referencia y vuelve a intentarlo.",
+    mal: "El sistema no reconoció la palabra objetivo. Usa el botón «Lento» y repite sílaba por sílaba."
+  };
+  const colores = { bien: "var(--exito)", regular: "var(--alerta)", mal: "var(--error)" };
+
+  const anillo = $("anillo");
+  anillo.style.setProperty("--valor", puntaje);
+  anillo.style.setProperty("--color", colores[tipo]);
+  $("puntajeTexto").textContent = puntaje;
+  $("resultadoTitulo").textContent = titulos[tipo];
+  $("resultadoMensaje").textContent = mensajes[tipo];
+  $("reconocido").textContent = texto || "(sin voz detectada)";
+  $("objetivo").innerHTML = marcarLetras(texto, p.termino);
+  $("resultado").className = `resultado visible ${tipo}`;
+  $("estado").textContent = "Pulsa el micrófono para intentarlo otra vez";
+
+  actualizarPanel();
+}
+
+function actualizarPanel() {
+  const total = estado.intentos.length;
+  const aciertos = estado.intentos.filter(i => i.tipo === "bien").length;
+  const promedio = total ? Math.round(estado.intentos.reduce((s, i) => s + i.puntaje, 0) / total) : null;
+  $("mIntentos").textContent = total;
+  $("mAciertos").textContent = aciertos;
+  $("mPromedio").textContent = promedio === null ? "–" : promedio;
+
+  const lista = $("historial");
+  if (!total) {
+    lista.innerHTML = '<li class="vacio">Aún no hay intentos en esta sesión.</li>';
+    return;
+  }
+  lista.innerHTML = estado.intentos.slice(0, 8).map(i => `
+    <li>
+      <div>${i.termino}<small>«${i.texto || "sin voz"}» · ${i.hora.toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" })}</small></div>
+      <span class="puntaje ${i.tipo}">${i.puntaje}</span>
+    </li>`).join("");
+}
+
+function avisar(texto) {
+  const aviso = $("aviso");
+  aviso.textContent = texto;
+  aviso.classList.add("visible");
+  clearTimeout(avisar.t);
+  avisar.t = setTimeout(() => aviso.classList.remove("visible"), 3500);
+}
+
+function activarModoManual(motivo) {
+  $("manual").classList.add("visible");
+  $("estado").textContent = motivo;
+}
+
+function detenerGrabacion() {
+  estado.grabando = false;
+  $("btnGrabar").classList.remove("grabando");
+  $("btnGrabar").setAttribute("aria-label", "Grabar pronunciación");
+}
+
+function iniciarGrabacion() {
+  if (!Reconocimiento) {
+    activarModoManual("Tu navegador no permite reconocimiento de voz: escribe lo que pronunciaste.");
+    $("entradaManual").focus();
+    return;
+  }
+  if (estado.grabando) { reconocedor.stop(); return; }
+
+  speechSynthesis && speechSynthesis.cancel();
+  reconocedor = new Reconocimiento();
+  reconocedor.lang = "en-US";
+  reconocedor.interimResults = false;
+  reconocedor.maxAlternatives = 5;
+
+  reconocedor.onstart = () => {
+    estado.grabando = true;
+    $("btnGrabar").classList.add("grabando");
+    $("btnGrabar").setAttribute("aria-label", "Detener grabación");
+    $("estado").textContent = "Escuchando… pronuncia la palabra";
+  };
+  reconocedor.onresult = e => {
+    const alternativas = [...e.results[0]].map(r => r.transcript);
+    evaluar(alternativas);
+  };
+  reconocedor.onerror = e => {
+    detenerGrabacion();
+    if (e.error === "no-speech") {
+      registrarIntento("", 0);
+    } else if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+      activarModoManual("No se concedió permiso al micrófono: puedes escribir lo que pronunciaste.");
+    } else {
+      avisar("No se pudo usar el micrófono. Inténtalo de nuevo.");
+    }
+  };
+  reconocedor.onend = detenerGrabacion;
+  reconocedor.start();
+}
+
+$("btnEscuchar").addEventListener("click", () => hablar(0.9));
+$("btnLento").addEventListener("click", () => hablar(0.55));
+$("btnGrabar").addEventListener("click", iniciarGrabacion);
+$("btnAnterior").addEventListener("click", () => {
+  if (estado.indice > 0) { estado.indice--; mostrarPalabra(); }
+});
+$("btnSiguiente").addEventListener("click", () => {
+  estado.indice = (estado.indice + 1) % palabras.length;
+  mostrarPalabra();
+});
+$("manual").addEventListener("submit", e => {
+  e.preventDefault();
+  const texto = $("entradaManual").value.trim();
+  if (!texto) { avisar("Escribe lo que pronunciaste para evaluarlo."); return; }
+  evaluar([texto]);
+});
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  if (e.code === "Space") { e.preventDefault(); iniciarGrabacion(); }
+  if (e.key === "ArrowRight") $("btnSiguiente").click();
+  if (e.key === "ArrowLeft" && !$("btnAnterior").disabled) $("btnAnterior").click();
+});
+if ("speechSynthesis" in window) speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+if (!Reconocimiento) activarModoManual("Tu navegador no permite reconocimiento de voz: escribe lo que pronunciaste.");
+
+mostrarPalabra();
+</script>
+</body>
+</html>
